@@ -10,9 +10,6 @@ print("[MAIN] Booting Jowie Voice Assistant...")
 transcriber = Transcriber()
 OrionVoice = JawieVoice()
 
-# Optional: Initial greeting
-OrionVoice.speak("Hello, I am Jowie. Please let me know if I can assist you with anything.")
-
 # Optional: handler to execute full assistant logic after voice intent is confirmed
 def on_user_spoke_to_assistant(transcript):
     print(f"[MAIN] Assistant invoked with: {transcript}")
@@ -21,6 +18,9 @@ def on_user_spoke_to_assistant(transcript):
 
 # Initialize the smart listener
 listener = SmartListener(model_size="large-v3", use_vad=True)
+
+# Optional: Initial greeting
+OrionVoice.speak("Hello, I am Jowie. Please let me know if I can assist you with anything.")
 
 # Start continuous listening
 listener.listen()

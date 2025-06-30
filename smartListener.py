@@ -8,10 +8,9 @@ import re
 from pathlib import Path
 from jawieVoice import JawieVoice
 
-
 INTENT_KEYWORDS = [
-    r"^(hey|hi|hello)?\s*(jowie|orion)[,]?",
-    r"^(what|how|could you|can you|tell me|do you|please)\b"
+    r"^(hey|hi|hello)?\s*(jowie|joey|jowy|jowey|jowee|jerry|jawie|orion)[,\s]",
+    r"\b(jowie|joey|jowy|jowey|jowee|jerry|jawie|orion)\b.*(can you|could you|would you|please|tell me|what|how|do you|show me)"
 ]
 
 SETTINGS_FILE = "settings.json"
@@ -19,7 +18,9 @@ SETTINGS_FILE = "settings.json"
 class SmartListener:
     def __init__(self, model_size="base", model_path="models/", device_idx=None, use_vad=False):
         self.fs = 16000
-        self.buffer_duration = 3.0
+        self.chunk_size = int(self.fs * 0.5)  # 0.5s chunks
+        self.max_silence_duration = 1.2
+        self.min_command_duration = 1.0
         self.model = WhisperModel(model_size, compute_type="int8", download_root=model_path)
         self.device = device_idx or self.load_device()
         self.tts = JawieVoice()
@@ -36,20 +37,35 @@ class SmartListener:
     def listen(self):
         print("[SMART] Starting intelligent listener...")
         with sd.InputStream(samplerate=self.fs, channels=1, dtype='int16', device=self.device) as stream:
+            buffer = np.zeros((0,), dtype=np.float32)
+            silence_chunks = 0
             while True:
-                audio = stream.read(int(self.fs * self.buffer_duration))[0].flatten().astype(np.float32) / 32768.0
+                chunk = stream.read(self.chunk_size)[0].flatten().astype(np.float32) / 32768.0
+                buffer = np.concatenate((buffer, chunk))
 
-                if self.use_vad and not self.vad.is_speech(audio):
-                    print("[SMART] Skipped: no voice activity detected.")
-                    continue
+                is_speech = True
+                if self.use_vad:
+                    is_speech = self.vad.is_speech(chunk)
 
-                transcription = self.transcribe(audio)
-                print(f"[SMART] Heard: {transcription}")
-                if self.is_intended_for_assistant(transcription):
-                    print(f"[SMART] User spoke to Jowie: {transcription}")
-                    self.tts.speak("Sure. Let me help with that.")
+                if is_speech:
+                    silence_chunks = 0
                 else:
-                    print(f"[SMART] Ignored: {transcription}")
+                    silence_chunks += 1
+
+                silence_duration = silence_chunks * (self.chunk_size / self.fs)
+                buffer_duration = len(buffer) / self.fs
+
+                if silence_duration >= self.max_silence_duration and buffer_duration >= self.min_command_duration:
+                    print("[SMART] Silence detected, processing...")
+                    transcription = self.transcribe(buffer)
+                    print(f"[SMART] Heard: {transcription}")
+                    if self.is_intended_for_assistant(transcription):
+                        print(f"[SMART] User spoke to Jowie: {transcription}")
+                        self.tts.speak("Sure. Let me help with that.")
+                    else:
+                        print(f"[SMART] Ignored: {transcription}")
+                    buffer = np.zeros((0,), dtype=np.float32)
+                    silence_chunks = 0
 
     def transcribe(self, audio):
         segments, _ = self.model.transcribe(audio)
@@ -61,8 +77,3 @@ class SmartListener:
             if re.search(pattern, text):
                 return True
         return False
-
-
-if __name__ == "__main__":
-    listener = SmartListener(model_size="small", use_vad=True)  # Set to False to disable VAD
-    listener.listen()
