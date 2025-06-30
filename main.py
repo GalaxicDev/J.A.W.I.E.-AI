@@ -1,29 +1,26 @@
-# main.py
-
-from wakeWordEngine import VoskWakewordEngine
+from smartListener import SmartListener
 from transcriber import Transcriber
 from jawieVoice import JawieVoice
 
 import os
-os.add_dll_directory(r"C:\Program Files\NVIDIA\CUDNN\v9.10\bin\12.9")
+os.add_dll_directory(r"C:\\Program Files\\NVIDIA\\CUDNN\\v9.10\\bin\\12.9")
 
 print("[MAIN] Booting Jowie Voice Assistant...")
+
 transcriber = Transcriber()
 OrionVoice = JawieVoice()
 
 # Optional: Initial greeting
 OrionVoice.speak("Hello, I am Jowie. Please let me know if I can assist you with anything.")
 
-def on_wakeword_detected():
-    print("[MAIN] Wakeword detected! Activating transcriber...")
-    try:
-        audio = transcriber.record_audio(duration=5.0)  # Record 5 seconds of audio
-        transcription = transcriber.transcribe(audio)
-        print(f"[MAIN] Transcription: {transcription}")
-        OrionVoice.speak(f"You said: {transcription}")
-    except Exception as e:
-        print(f"[MAIN] Error during transcription: {e}")
+# Optional: handler to execute full assistant logic after voice intent is confirmed
+def on_user_spoke_to_assistant(transcript):
+    print(f"[MAIN] Assistant invoked with: {transcript}")
+    OrionVoice.speak(f"You said: {transcript}")
+    # Expand: add further command parsing or function execution
 
-# Start the always-on assistant
-listener = VoskWakewordEngine(on_wakeword=on_wakeword_detected)
-listener.start()
+# Initialize the smart listener
+listener = SmartListener(model_size="large-v3", use_vad=True)
+
+# Start continuous listening
+listener.listen()
