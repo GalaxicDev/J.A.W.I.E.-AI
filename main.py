@@ -1,15 +1,15 @@
 # main.py
 
-from wakeWordEngine import OpenWakewordEngine
+from wakeWordEngine import VoskWakewordEngine
 from transcriber import Transcriber
-from jawieVoice import OrionVoice
+from jawieVoice import JawieVoice
 
 import os
 os.add_dll_directory(r"C:\Program Files\NVIDIA\CUDNN\v9.10\bin\12.9")
 
 print("[MAIN] Booting Jowie Voice Assistant...")
 transcriber = Transcriber()
-OrionVoice = OrionVoice()
+OrionVoice = JawieVoice()
 
 # Optional: Initial greeting
 OrionVoice.speak("Hello, I am Jowie. Please let me know if I can assist you with anything.")
@@ -25,5 +25,5 @@ def on_wakeword_detected():
         print(f"[MAIN] Error during transcription: {e}")
 
 # Start the always-on assistant
-listener = OpenWakewordEngine(on_wakeword=on_wakeword_detected)
+listener = VoskWakewordEngine(on_wakeword=on_wakeword_detected)
 listener.start()

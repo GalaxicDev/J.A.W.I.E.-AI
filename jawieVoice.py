@@ -3,7 +3,7 @@ import soundfile as sf
 import sounddevice as sd
 import io
 
-class OrionVoice:
+class JawieVoice:
     def __init__(self):
         print("[ORION TTS] Kokoro streaming voice active")
 
