@@ -9,14 +9,14 @@ from pathlib import Path
 from jawieVoice import JawieVoice
 
 INTENT_KEYWORDS = [
-    r"^(hey|hi|hello)?\s*(jowie|joey|jowy|jowey|jowee|jerry|jawie|orion)[,\s]",
-    r"\b(jowie|joey|jowy|jowey|jowee|jerry|jawie|orion)\b.*(can you|could you|would you|please|tell me|what|how|do you|show me)"
+    r"^(hey|hi|hello|hallo|hei)?\s*(jowie|joey|jowy|jowey|jowee|jerry|jawie|joby|joe)[,\s]",
+    r"\b(jowie|joey|jowy|jowey|jowee|jerry|jawie|joby|joe)\b.*(can you|could you|would you|please|tell me|what|how|do you|show me)"
 ]
 
 SETTINGS_FILE = "settings.json"
 
 class SmartListener:
-    def __init__(self, model_size="base", model_path="models/", device_idx=None, use_vad=False):
+    def __init__(self, model_size="base", model_path="models/", device_idx=None, use_vad=False, questionCallback=None):
         self.fs = 16000
         self.chunk_size = int(self.fs * 0.5)  # 0.5s chunks
         self.max_silence_duration = 1.2
@@ -25,6 +25,7 @@ class SmartListener:
         self.device = device_idx or self.load_device()
         self.tts = JawieVoice()
         self.use_vad = use_vad
+        self.callback = questionCallback
         if self.use_vad:
             self.vad = VoiceActivityDetector(sample_rate=self.fs)
 
@@ -62,6 +63,7 @@ class SmartListener:
                     if self.is_intended_for_assistant(transcription):
                         print(f"[SMART] User spoke to Jowie: {transcription}")
                         self.tts.speak("Sure. Let me help with that.")
+                        self.callback(transcription)
                     else:
                         print(f"[SMART] Ignored: {transcription}")
                     buffer = np.zeros((0,), dtype=np.float32)
