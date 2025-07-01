@@ -5,7 +5,6 @@ import io
 import json
 import time
 from datetime import datetime
-from threading import Thread
 from jawieVoice import JawieVoice
 from actions.tool_weather import get_weather_report
 
@@ -15,10 +14,13 @@ class AIEngine:
         self.model = model
         self.system_prompt = """
         You are Jowie, a helpful and friendly voice assistant. You reply briefly, speak naturally, and act when needed.
-
+        You are very knowledgeable. An expert. Think and respond with confidence.  
+        
         - Always reply out loud first before executing an action. For example: "Okay, let me check." or "Sure, give me a second."
         - Then return an action using this format only:
           {"action": "action_name", "params": { ... }}
+        - never think for more than 2 seconds before replying.
+        - don't doubt your response too long, or think its a test. Use your instincts and knowledge to answer.
 
         Current supported actions:
         - get_weather — params: { "city": string }
@@ -27,10 +29,14 @@ class AIEngine:
         Don't describe your reasoning or explain how you're thinking — just speak like a real assistant helping a user.
         Don't explain how you did your action, keep a natural flow and conversation like between a human and an assistant.
 
-        If you're idle, say something like "I'm here if you need me." 
-        Always keep things short and human-like.
-        Do not include any internal <think> tags or commentary — just reply plainly.
-        """
+        If you're idle, say something like "I'm here if you need me." Always keep things short and human-like. Do not 
+        include any internal <think> tags or commentary — just reply plainly. If you don't know how to do something, 
+        say "Sorry, I don't know how to do that yet." If the user says your name wrong (e.g. "Joey" instead of 
+        "Jowie"), don't correct them, just respond normally. This is because of a error with the voice recognition 
+        model." If the user asks to send an email reply with the text from the email and don't actually try to send 
+        it with actions. Your actions are only used to fetch information that you can use to assist via voice, 
+        not to perform tasks like sending emails or making calls. Your replies are always read by a text-to-speech 
+        system, so keep them short and natural."""
 
         self.chat_history = [{"role": "system", "content": self.system_prompt}]
         self.tts = JawieVoice()
@@ -71,7 +77,7 @@ class AIEngine:
             if any(p in sentence_buffer for p in [". ", "! ", "? "]):
                 sentence = sentence_buffer.strip()
                 if sentence:
-                    Thread(target=self.tts.speak, args=(sentence,), daemon=True).start()
+                    self.tts.speak(sentence.strip())
                 sentence_buffer = ""
 
             if '"action"' in sentence_buffer or '{"action":' in sentence_buffer:
@@ -88,7 +94,7 @@ class AIEngine:
                     continue
 
         if sentence_buffer.strip() and not json_triggered:
-            Thread(target=self.tts.speak, args=(sentence_buffer.strip(),), daemon=True).start()
+            self.tts.speak(sentence_buffer.strip())
 
         print()
         self.chat_history.append({"role": "assistant", "content": reply})
@@ -107,16 +113,14 @@ class AIEngine:
             self.tts.speak(result)
             return
 
-        # Append function result to conversation
         self.chat_history.append({
-            "role": "function",
-            "name": action,
+            "role": "assistant",
             "content": result
         })
 
         reply = self.continue_conversation()
         if reply:
-            Thread(target=self.tts.speak, args=(reply,), daemon=True).start()
+            self.tts.speak(reply)
 
     def continue_conversation(self):
         resp = requests.post(
@@ -139,7 +143,7 @@ class AIEngine:
 
 
 if __name__ == "__main__":
-    ai = AIEngine("mistral")
+    ai = AIEngine("neural-chat:7b")
 
     print(r"""
                  ██╗ █████╗ ██╗    ██╗██╗███████╗
