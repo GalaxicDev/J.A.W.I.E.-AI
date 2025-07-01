@@ -12,6 +12,9 @@ transcriber = Transcriber()
 OrionVoice = JawieVoice()
 ai = AIEngine("llama3")  # or "mistral"
 
+# list devices debug
+transcriber.select_device()
+
 # Optional: handler to execute full assistant logic after voice intent is confirmed
 def on_user_spoke_to_assistant(transcript):
     print(f"[MAIN] User spoke to Jowie: {transcript}")
@@ -25,7 +28,7 @@ def on_user_spoke_to_assistant(transcript):
     ai.reset()
 
 # Initialize the smart listener
-listener = SmartListener(model_size="large-v3-turbo", use_vad=True,
+listener = SmartListener(model_size="medium.en", use_vad=True,
                          questionCallback=on_user_spoke_to_assistant)
 
 # Optional: Initial greeting

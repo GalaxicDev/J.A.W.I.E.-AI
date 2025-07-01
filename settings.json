@@ -1,16 +1,1 @@
-{
-  "input_device": 2,
-  "output_device": 3,
-  "sample_rate": 16000,
-  "command_recognition_window": 0.5,
-  "command_recognition_threshold": 0.7,
-  "max_silent_duration": 1.2,
-  "min_command_duration": 1,
-  "voice_activation_model": "medium.en",
-  "transcription_model": "large-v3",
-  "answer_model": "hermes2-mistral",
-  "tts_voice": "af_heart",
-  "input_gain": 1.5,
-
-
-}
+{"input_device": 2}

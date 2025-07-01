@@ -50,3 +50,12 @@ class Transcriber:
         full_text = " ".join([seg.text for seg in segments])
         print(f"[STT] Transcribed: {full_text.strip()}")
         return full_text.strip()
+
+
+if __name__ == "__main__":
+    transcriber = Transcriber()
+
+    while True:
+        audio = transcriber.record_audio(5.0)
+        transcription = transcriber.transcribe(audio)
+        print(f"\n[Transcription]: {transcription}\n")
