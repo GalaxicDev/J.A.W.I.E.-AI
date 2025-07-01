@@ -11,7 +11,7 @@ from jawieVoice import JawieVoice
 INTENT_KEYWORDS = [
     r"^(hey|hi|hello|hallo|hei)?\s*(jowie|joey|jowy|jowey|jowee|jerry|jawie|joby|joe|jeremy)[,\s]",
     r"\b(jowie|joey|jowy|jowey|jowee|jerry|jawie|joby|joe|jeremy)\b.*(can you|could you|would you|please|tell me|what|how|do you|show me)",
-    r"^(can you|could you|would you|please|tell me|what|how|do you|show me)\s*(jowie|joey|jowy|jowey|jowee|jerry|jawie|joby|joe|jeremy)[,\s]"
+    r"^(can you|could you|would you|please|tell me|what|how|do you|show me)[,\s]"
 ]
 
 SETTINGS_FILE = "settings.json"
@@ -38,9 +38,10 @@ class SmartListener:
             return json.load(f).get("input_device")
 
     def listen(self):
-        print("[SMART] Starting intelligent listener...")
+
         target_dB = -30
         with sd.InputStream(samplerate=self.fs, channels=1, dtype='int16', device=self.device) as stream:
+            print("[SMART] Starting intelligent listener active with VAD...")
             buffer = np.zeros((0,), dtype=np.float32)
             silence_chunks = 0
             while True:

@@ -10,22 +10,17 @@ print("[MAIN] Booting J.A.W.I.E. Voice Assistant...")
 
 transcriber = Transcriber()
 OrionVoice = JawieVoice()
-ai = AIEngine("llama3-chatqa:8b")  # or "mistral"
+ai = AIEngine("phi3:3.8b")
 
-# list devices debug
 transcriber.select_device()
 
-# Optional: handler to execute full assistant logic after voice intent is confirmed
 def on_user_spoke_to_assistant(transcript):
     print(f"[MAIN] User spoke to Jawie: {transcript}")
-    # Here you can handle the transcript, e.g. pass it to AIEngine for processing
     response = ai.ask(transcript)
     if response:
         OrionVoice.speak(response)
     else:
         OrionVoice.speak("Sorry, I didn't understand that.")
-    # Optionally reset the AI engine state if needed
-    ai.reset()
 
 # Initialize the smart listener
 listener = SmartListener(model_size="medium.en", use_vad=True,

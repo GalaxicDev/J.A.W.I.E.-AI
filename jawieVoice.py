@@ -57,6 +57,8 @@ class JawieVoice:
                 print(f"[TTS Error] {e}")
 
     def speak(self, text: str):
+        # process the text to remove the json actions
+        text = text.replace('"action":', "").replace('"params":', "").replace('"', "")
         self.q.put(text)
 
 
